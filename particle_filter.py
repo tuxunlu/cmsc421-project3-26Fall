@@ -23,7 +23,7 @@ class Particle:
         self.orient = orient
         self.weight = weight
 
-    def add_noise(self, std_pos=1.0, std_orient=1.0):
+    def add_noise(self, std_pos=1.0, std_orient=0.1):
         """
         Adds noise to pos and orient
             this is useful when sampling from a distribution with mean at

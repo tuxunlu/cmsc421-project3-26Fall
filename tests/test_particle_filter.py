@@ -58,7 +58,7 @@ def test_transition_sample():
         rng = np.random.default_rng(s)
         a = rng.uniform(-np.pi, np.pi)
         p = Particle(np.array([500.0, 300.0]), np.array([np.cos(a), np.sin(a)]))
-        delta, speed = rng.uniform(-0.3, 0.3), rng.uniform(2, 10)
+        delta, speed = rng.uniform(0.15, 0.3) * rng.choice([-1, 1]), rng.uniform(2, 10)
         before = (p.pos.copy(), p.orient.copy())
         new = [f.transition_sample(p, delta, speed) for _ in range(2000)]
         assert np.allclose(p.pos, before[0]) and np.allclose(p.orient, before[1]), "do not change the particle passed in"
@@ -69,7 +69,9 @@ def test_transition_sample():
         expect_p = before[0] + speed * expect_o
         assert np.allclose(np.linalg.norm(ori, axis=1), 1.0)
         mean_o = ori.mean(axis=0) / np.linalg.norm(ori.mean(axis=0))
-        assert np.linalg.norm(mean_o - expect_o) < 0.05, "rotate the orientation by delta_angle"
+        cands = {"correct": a + delta, "none": a, "opposite": a - delta, "twice": a + 2 * delta}
+        dist = {k: np.linalg.norm(mean_o - [np.cos(t), np.sin(t)]) for k, t in cands.items()}
+        assert min(dist, key=dist.get) == "correct", "rotate the orientation by delta_angle"
         assert np.linalg.norm(pos.mean(axis=0) - expect_p) < 1.5, "move speed units in the new direction"
         assert pos.std(axis=0).max() > 1e-3, "add noise to the new pose"
         # the rotation has the same sign as delta_angle in the simulator (angle_bw)
